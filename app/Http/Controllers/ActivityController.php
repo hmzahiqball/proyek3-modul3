@@ -4,14 +4,21 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
+use Illuminate\View\View;
+use App\Models\Activity;
+
 class ActivityController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): View
     {
-        //
+        $activities = Activity::query()
+            ->orderBy('activity_date')
+            ->get();
+
+        return view('activities.index', compact('activities'));
     }
 
     /**
@@ -33,9 +40,9 @@ class ActivityController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Activity $activity): View
     {
-        //
+        return view('activities.show', compact('activity'));
     }
 
     /**
