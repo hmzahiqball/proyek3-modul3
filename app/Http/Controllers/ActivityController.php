@@ -15,9 +15,15 @@ class ActivityController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): View
+    public function index(\Illuminate\Http\Request $request): View
     {
+        $validStatuses = ['Planned', 'Ongoing', 'Done'];
+        $statusFilter = $request->query('status');
+
         $activities = Activity::query()
+            ->when(in_array($statusFilter, $validStatuses, true), function ($query) use ($statusFilter) {
+                $query->where('status', $statusFilter);
+            })
             ->orderBy('activity_date')
             ->get();
 
