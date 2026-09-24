@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Http\Requests\StoreActivityRequest;
 use App\Http\Requests\UpdateActivityRequest;
-use Illuminate\Http\RedirectResponse;
-
-use Illuminate\View\View;
 use App\Models\Activity;
+use App\Services\ActivityService;
+use DomainException;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class ActivityController extends Controller
 {
@@ -35,9 +35,9 @@ class ActivityController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreActivityRequest $request): RedirectResponse
+    public function store(StoreActivityRequest $request, ActivityService $service): RedirectResponse
     {
-        $activity = Activity::create($request->validated());
+        $activity = $service->create($request->validated());
 
         return redirect()->route('activities.show', $activity)
             ->with('success', 'Kegiatan berhasil ditambahkan!');
@@ -62,9 +62,15 @@ class ActivityController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateActivityRequest $request, Activity $activity): RedirectResponse
+    public function update(UpdateActivityRequest $request, Activity $activity, ActivityService $service): RedirectResponse
     {
-        $activity->update($request->validated());
+        try {
+            $service->update($activity, $request->validated());
+        } catch (DomainException $exception) {
+            return back()
+                ->withErrors(['status' => $exception->getMessage()])
+                ->withInput();
+        }
 
         return redirect()->route('activities.show', $activity)
             ->with('success', 'Kegiatan berhasil diubah!');
