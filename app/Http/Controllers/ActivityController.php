@@ -17,13 +17,10 @@ class ActivityController extends Controller
      */
     public function index(\Illuminate\Http\Request $request): View
     {
-        $validStatuses = ['Planned', 'Ongoing', 'Done'];
         $statusFilter = $request->query('status');
 
         $activities = Activity::query()
-            ->when(in_array($statusFilter, $validStatuses, true), function ($query) use ($statusFilter) {
-                $query->where('status', $statusFilter);
-            })
+            ->filterByStatus($statusFilter)
             ->orderBy('activity_date')
             ->get();
 
