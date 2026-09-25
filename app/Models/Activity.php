@@ -24,7 +24,7 @@ class Activity extends Model
     public function scopeFilterByStatus($query, $status)
     {
         $validStatuses = ['Planned', 'Ongoing', 'Done'];
-        
+
         return $query->when(in_array($status, $validStatuses, true), function ($q) use ($status) {
             $q->where('status', $status);
         });
