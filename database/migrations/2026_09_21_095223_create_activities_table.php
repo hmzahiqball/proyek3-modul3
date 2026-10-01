@@ -19,7 +19,6 @@ return new class extends Migration
             $table->string('category', 50);
             $table->string('status', 20)->default('Planned');
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 
