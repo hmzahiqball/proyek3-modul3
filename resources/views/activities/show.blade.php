@@ -40,8 +40,28 @@
         <p><strong>Tanggal Mulai:</strong> {{ $activity->start_at->format('d M Y') }}</p>
         <p><strong>Tanggal Selesai:</strong> {{ $activity->end_at->format('d M Y') }}</p>
         <p><strong>Kapasitas:</strong> {{ $activity->capacity }}</p>
+        <p><strong>Pendaftar:</strong> {{ $activity->registered_count }} / {{ $activity->capacity }}</p>
         <p><strong>Status:</strong> <span style="background-color: #eee; padding: 3px 8px; border-radius: 4px;">{{ $activity->status }}</span></p>
     </div>
+
+    @if ($activity->status === 'published')
+        <form action="{{ route('activities.registrations.store', $activity) }}" method="POST">
+            @csrf
+            <label for="participant_name">Nama peserta</label>
+            <input id="participant_name" name="participant_name" value="{{ old('participant_name') }}" required>
+            @error('participant_name')
+                <p style="color: red;">{{ $message }}</p>
+            @enderror
+
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" value="{{ old('email') }}" required>
+            @error('email')
+                <p style="color: red;">{{ $message }}</p>
+            @enderror
+
+            <button type="submit">Daftar</button>
+        </form>
+    @endif
 
     <div>
         <p><strong>Deskripsi:</strong></p>
