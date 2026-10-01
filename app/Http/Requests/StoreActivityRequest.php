@@ -24,12 +24,13 @@ class StoreActivityRequest extends FormRequest
     {
         return [
             'category_id' => ['required', 'exists:categories,id'],
-            'code'        => ['required', 'string', 'max:30', 'unique:activities,code'],
-            'title'       => ['required', 'string', 'max:150'],
+            'code' => ['required', 'string', 'max:30', 'unique:activities,code'],
+            'title' => ['required', 'string', 'max:150'],
             'description' => ['nullable', 'string'],
-            'start_at'    => ['required', 'date'],
-            'end_at'      => ['required', 'date', 'after_or_equal:start_at'],
-            'capacity'    => ['required', 'integer', 'min:1', 'max:500'],
+            'poster' => ['nullable', 'image', 'max:2048'],
+            'start_at' => ['required', 'date'],
+            'end_at' => ['required', 'date', 'after_or_equal:start_at'],
+            'capacity' => ['required', 'integer', 'min:1', 'max:500'],
         ];
     }
 }

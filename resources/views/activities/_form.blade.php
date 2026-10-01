@@ -23,6 +23,17 @@
 </div>
 
 <div>
+    <label for="poster">Poster (opsional, maksimal 2 MB)</label>
+    <input id="poster" name="poster" type="file" accept="image/*">
+    @if (!empty($activity?->poster_path))
+        <p>Poster saat ini: {{ basename($activity->poster_path) }}</p>
+    @endif
+    @error('poster')
+        <p class="error" style="color: red;">{{ $message }}</p>
+    @enderror
+</div>
+
+<div>
     <label for="category_id">Kategori</label>
     <select id="category_id" name="category_id">
         <option value="">-- Pilih Kategori --</option>

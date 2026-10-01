@@ -47,7 +47,7 @@ class ActivityController extends Controller
      */
     public function store(StoreActivityRequest $request, ActivityService $service): RedirectResponse
     {
-        $activity = $service->create($request->validated());
+        $activity = $service->create($request->validated(), $request->file('poster'));
 
         return redirect()->route('activities.show', $activity)
             ->with('success', 'Kegiatan berhasil ditambahkan!');
@@ -79,7 +79,7 @@ class ActivityController extends Controller
     public function update(UpdateActivityRequest $request, Activity $activity, ActivityService $service): RedirectResponse
     {
         try {
-            $service->update($activity, $request->validated());
+            $service->update($activity, $request->validated(), $request->file('poster'));
         } catch (DomainException $exception) {
             return back()
                 ->withErrors(['status' => $exception->getMessage()])

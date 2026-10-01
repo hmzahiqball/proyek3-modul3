@@ -4,6 +4,9 @@ namespace App\Services;
 
 use App\Models\Activity;
 use DomainException;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 class ActivityService
 {
@@ -38,21 +41,62 @@ class ActivityService
         'capacity',
     ];
 
-    public function create(array $data): Activity
+    public function create(array $data, ?UploadedFile $poster = null): Activity
     {
+        unset($data['poster']);
         $data['status'] = 'draft';
+        $newPosterPath = $this->storePoster($poster);
 
-        return Activity::create($data);
+        if ($newPosterPath !== null) {
+            $data['poster_path'] = $newPosterPath;
+        }
+
+        try {
+            return Activity::create($data);
+        } catch (Throwable $exception) {
+            $this->deletePoster($newPosterPath);
+
+            throw $exception;
+        }
     }
 
-    public function update(Activity $activity, array $data): Activity
+    public function update(Activity $activity, array $data, ?UploadedFile $poster = null): Activity
     {
+        unset($data['poster']);
         $nextStatus = $data['status'] ?? $activity->status;
         $this->ensureValidTransition($activity->status, $nextStatus);
+        $oldPosterPath = $activity->poster_path;
+        $newPosterPath = $this->storePoster($poster);
 
-        $activity->update($data);
+        if ($newPosterPath !== null) {
+            $data['poster_path'] = $newPosterPath;
+        }
+
+        try {
+            $activity->update($data);
+        } catch (Throwable $exception) {
+            $this->deletePoster($newPosterPath);
+
+            throw $exception;
+        }
+
+        if ($newPosterPath !== null && $oldPosterPath !== null) {
+            $this->deletePoster($oldPosterPath);
+        }
 
         return $activity->refresh();
+    }
+
+    private function storePoster(?UploadedFile $poster): ?string
+    {
+        return $poster?->store('posters', 'public');
+    }
+
+    private function deletePoster(?string $posterPath): void
+    {
+        if ($posterPath !== null) {
+            Storage::disk('public')->delete($posterPath);
+        }
     }
 
     /**

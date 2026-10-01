@@ -36,6 +36,11 @@
     <h1>[{{ $activity->code }}] {{ $activity->title }}</h1>
     
     <div>
+        @if ($activity->poster_path)
+            <p>
+                <img src="{{ asset('storage/' . $activity->poster_path) }}" alt="Poster {{ $activity->title }}" style="max-width: 320px;">
+            </p>
+        @endif
         <p><strong>Kategori:</strong> {{ $activity->category ? $activity->category->name : 'N/A' }}</p>
         <p><strong>Tanggal Mulai:</strong> {{ $activity->start_at->format('d M Y') }}</p>
         <p><strong>Tanggal Selesai:</strong> {{ $activity->end_at->format('d M Y') }}</p>

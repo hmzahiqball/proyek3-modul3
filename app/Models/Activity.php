@@ -16,6 +16,7 @@ class Activity extends Model
         'code',
         'title',
         'description',
+        'poster_path',
         'start_at',
         'end_at',
         'capacity',
