@@ -102,6 +102,18 @@ class ActivityController extends Controller
             ->with('success', 'Kegiatan berhasil dipublish!');
     }
 
+    public function complete(Activity $activity, ActivityService $service): RedirectResponse
+    {
+        try {
+            $service->complete($activity);
+        } catch (DomainException $exception) {
+            return back()->withErrors(['status' => $exception->getMessage()]);
+        }
+
+        return redirect()->route('activities.show', $activity)
+            ->with('success', 'Kegiatan berhasil diselesaikan!');
+    }
+
     public function trash(): View
     {
         $activities = Activity::onlyTrashed()->with('category')->latest('deleted_at')->get();

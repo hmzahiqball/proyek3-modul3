@@ -18,6 +18,13 @@
                 <button type="submit">Publish</button>
             </form>
         @endif
+
+        @if ($activity->status === 'published')
+            <form action="{{ route('activities.complete', $activity) }}" method="POST" style="display: inline; margin-right: 10px;">
+                @csrf
+                <button type="submit">Selesaikan</button>
+            </form>
+        @endif
         
         <form action="{{ route('activities.destroy', $activity) }}" method="POST" style="display: inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus kegiatan ini?');">
             @csrf

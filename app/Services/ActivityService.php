@@ -21,7 +21,7 @@ class ActivityService
      * 4. Mencegah perubahan status ilegal seperti completed -> draft.
      */
     private const TRANSITIONS = [
-        'draft'     => ['draft', 'published'],
+        'draft' => ['draft', 'published'],
         'published' => ['published', 'completed'],
         'completed' => ['completed'],
     ];
@@ -79,11 +79,24 @@ class ActivityService
 
         if (! empty($missingFields)) {
             throw new DomainException(
-                'Field berikut harus diisi sebelum publish: ' . implode(', ', $missingFields)
+                'Field berikut harus diisi sebelum publish: '.implode(', ', $missingFields)
             );
         }
 
         $activity->update(['status' => 'published']);
+
+        return $activity->refresh();
+    }
+
+    public function complete(Activity $activity): Activity
+    {
+        if ($activity->status !== 'published') {
+            throw new DomainException(
+                "Hanya kegiatan berstatus 'published' yang dapat diselesaikan. Status saat ini: {$activity->status}."
+            );
+        }
+
+        $activity->update(['status' => 'completed']);
 
         return $activity->refresh();
     }

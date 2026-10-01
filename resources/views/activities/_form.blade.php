@@ -61,14 +61,3 @@
     @enderror
 </div>
 
-<div>
-    <label for="status">Status</label>
-    <select id="status" name="status">
-        <option value="draft" {{ old('status', $activity->status ?? '') == 'draft' ? 'selected' : '' }}>Draft</option>
-        <option value="published" {{ old('status', $activity->status ?? '') == 'published' ? 'selected' : '' }}>Published</option>
-        <option value="completed" {{ old('status', $activity->status ?? '') == 'completed' ? 'selected' : '' }}>Completed</option>
-    </select>
-    @error('status')
-        <p class="error" style="color: red;">{{ $message }}</p>
-    @enderror
-</div>
