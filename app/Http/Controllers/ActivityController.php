@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreActivityRequest;
 use App\Http\Requests\UpdateActivityRequest;
 use App\Models\Activity;
+use App\Models\Category;
 use App\Services\ActivityService;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
@@ -18,14 +19,17 @@ class ActivityController extends Controller
      */
     public function index(Request $request): View
     {
-        $statusFilter = $request->query('status');
+        $categories = Category::all();
 
-        $activities = Activity::query()
-            ->filterByStatus($statusFilter)
-            ->orderBy('activity_date')
-            ->get();
+        $activities = Activity::with('category')
+            ->search($request->query('search'))
+            ->filterByCategory($request->query('category_id'))
+            ->filterByStatus($request->query('status'))
+            ->sortByStart($request->query('sort'))
+            ->paginate(10)
+            ->withQueryString();
 
-        return view('activities.index', compact('activities'));
+        return view('activities.index', compact('activities', 'categories'));
     }
 
     /**
@@ -33,7 +37,9 @@ class ActivityController extends Controller
      */
     public function create(): View
     {
-        return view('activities.create');
+        $categories = Category::all();
+
+        return view('activities.create', compact('categories'));
     }
 
     /**
@@ -52,6 +58,8 @@ class ActivityController extends Controller
      */
     public function show(Activity $activity): View
     {
+        $activity->load('category');
+
         return view('activities.show', compact('activity'));
     }
 
@@ -60,7 +68,9 @@ class ActivityController extends Controller
      */
     public function edit(Activity $activity): View
     {
-        return view('activities.edit', compact('activity'));
+        $categories = Category::all();
+
+        return view('activities.edit', compact('activity', 'categories'));
     }
 
     /**
@@ -78,6 +88,34 @@ class ActivityController extends Controller
 
         return redirect()->route('activities.show', $activity)
             ->with('success', 'Kegiatan berhasil diubah!');
+    }
+
+    public function publish(Activity $activity, ActivityService $service): RedirectResponse
+    {
+        try {
+            $service->publish($activity);
+        } catch (DomainException $exception) {
+            return back()->withErrors(['status' => $exception->getMessage()]);
+        }
+
+        return redirect()->route('activities.show', $activity)
+            ->with('success', 'Kegiatan berhasil dipublish!');
+    }
+
+    public function trash(): View
+    {
+        $activities = Activity::onlyTrashed()->with('category')->latest('deleted_at')->get();
+
+        return view('activities.trash', compact('activities'));
+    }
+
+    public function restore(int $activity): RedirectResponse
+    {
+        $deletedActivity = Activity::onlyTrashed()->findOrFail($activity);
+        $deletedActivity->restore();
+
+        return redirect()->route('activities.index')
+            ->with('success', 'Kegiatan berhasil dipulihkan.');
     }
 
     /**

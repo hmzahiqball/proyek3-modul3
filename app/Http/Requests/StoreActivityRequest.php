@@ -23,11 +23,13 @@ class StoreActivityRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => ['required', 'string', 'min:5', 'max:100'],
+            'category_id' => ['required', 'exists:categories,id'],
+            'code'        => ['required', 'string', 'max:30', 'unique:activities,code'],
+            'title'       => ['required', 'string', 'max:150'],
             'description' => ['nullable', 'string'],
-            'activity_date' => ['required', 'date'],
-            'category' => ['required', 'string', 'max:50'],
-            'status' => ['required', 'string', 'in:Planned,Ongoing,Done'],
+            'start_at'    => ['required', 'date'],
+            'end_at'      => ['required', 'date', 'after_or_equal:start_at'],
+            'capacity'    => ['required', 'integer', 'min:1', 'max:500'],
         ];
     }
 }

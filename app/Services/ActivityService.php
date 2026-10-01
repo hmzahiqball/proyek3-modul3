@@ -7,14 +7,41 @@ use DomainException;
 
 class ActivityService
 {
+    /**
+     * Transisi status yang diizinkan.
+     *
+     * Eksperimen 2 - Langkah 7:
+     * Transisi status ditempatkan pada method khusus karena:
+     * 1. Business rule transisi tidak bisa divalidasi hanya dari data request,
+     *    melainkan bergantung pada STATE (status saat ini) dari Activity.
+     * 2. Form Request hanya memvalidasi input, bukan state domain.
+     * 3. Menempatkan logic ini di Service menjaga controller tetap tipis
+     *    dan memudahkan pengujian serta reuse dari berbagai entry point
+     *    (web, API, console).
+     * 4. Mencegah perubahan status ilegal seperti completed -> draft.
+     */
     private const TRANSITIONS = [
-        'Planned' => ['Planned', 'Ongoing'],
-        'Ongoing' => ['Ongoing', 'Done'],
-        'Done' => ['Done'],
+        'draft'     => ['draft', 'published'],
+        'published' => ['published', 'completed'],
+        'completed' => ['completed'],
+    ];
+
+    /**
+     * Field yang wajib diisi sebelum Activity bisa dipublish.
+     */
+    private const PUBLISH_REQUIRED_FIELDS = [
+        'category_id',
+        'code',
+        'title',
+        'start_at',
+        'end_at',
+        'capacity',
     ];
 
     public function create(array $data): Activity
     {
+        $data['status'] = 'draft';
+
         return Activity::create($data);
     }
 
@@ -28,13 +55,51 @@ class ActivityService
         return $activity->refresh();
     }
 
+    /**
+     * Eksperimen 2 - Langkah 4 & 5:
+     * Publish Activity. Method harus:
+     * - Menolak Activity yang BUKAN draft (langkah 4)
+     * - Memeriksa kelengkapan field wajib sebelum publish (langkah 5)
+     */
+    public function publish(Activity $activity): Activity
+    {
+        if ($activity->status !== 'draft') {
+            throw new DomainException(
+                "Hanya kegiatan berstatus 'draft' yang dapat dipublish. Status saat ini: {$activity->status}."
+            );
+        }
+
+        // Periksa kelengkapan field wajib
+        $missingFields = [];
+        foreach (self::PUBLISH_REQUIRED_FIELDS as $field) {
+            if (empty($activity->{$field})) {
+                $missingFields[] = $field;
+            }
+        }
+
+        if (! empty($missingFields)) {
+            throw new DomainException(
+                'Field berikut harus diisi sebelum publish: ' . implode(', ', $missingFields)
+            );
+        }
+
+        $activity->update(['status' => 'published']);
+
+        return $activity->refresh();
+    }
+
+    /**
+     * Eksperimen 2 - Langkah 6:
+     * Memastikan transisi status valid.
+     * Contoh: completed -> draft TIDAK diizinkan.
+     */
     private function ensureValidTransition(string $current, string $next): void
     {
         $allowed = self::TRANSITIONS[$current] ?? [];
 
         if (! in_array($next, $allowed, true)) {
             throw new DomainException(
-                "Transisi status {$current} ke {$next} tidak diizinkan."
+                "Transisi status '{$current}' ke '{$next}' tidak diizinkan."
             );
         }
     }

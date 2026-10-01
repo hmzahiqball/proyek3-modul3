@@ -3,30 +3,67 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Activity extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
+        'category_id',
+        'code',
         'title',
         'description',
-        'activity_date',
-        'category',
+        'start_at',
+        'end_at',
+        'capacity',
         'status',
     ];
 
     protected function casts(): array
     {
         return [
-            'activity_date' => 'date',
+            'start_at' => 'date',
+            'end_at' => 'date',
+            'capacity' => 'integer',
         ];
+    }
+
+    /**
+     * Relationship: setiap Activity dimiliki oleh satu Category.
+     */
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
     }
 
     public function scopeFilterByStatus($query, $status)
     {
-        $validStatuses = ['Planned', 'Ongoing', 'Done'];
+        $validStatuses = ['draft', 'published', 'completed'];
 
         return $query->when(in_array($status, $validStatuses, true), function ($q) use ($status) {
             $q->where('status', $status);
         });
+    }
+
+    public function scopeSearch($query, ?string $search)
+    {
+        return $query->when($search, function ($q) use ($search) {
+            $q->where(function ($subQuery) use ($search) {
+                $subQuery->where('code', 'like', "%{$search}%")
+                    ->orWhere('title', 'like', "%{$search}%");
+            });
+        });
+    }
+
+    public function scopeFilterByCategory($query, $categoryId)
+    {
+        return $query->when($categoryId, fn ($q) => $q->where('category_id', $categoryId));
+    }
+
+    public function scopeSortByStart($query, ?string $sort)
+    {
+        return $query->orderBy('start_at', $sort === 'oldest' ? 'asc' : 'desc');
     }
 }
