@@ -100,6 +100,22 @@ class RelationalActivityIntegrityTest extends TestCase
         $this->assertDatabaseMissing('categories', ['id' => $category->id]);
     }
 
+    public function test_category_is_available_in_forms_and_activity_views(): void
+    {
+        $category = $this->createCategory('workshop');
+        $activity = Activity::create($this->activityData(['category_id' => $category->id]));
+
+        $this->get(route('activities.create'))
+            ->assertOk()
+            ->assertSee('Workshop');
+        $this->get(route('activities.index'))
+            ->assertOk()
+            ->assertSee('Workshop');
+        $this->get(route('activities.show', $activity))
+            ->assertOk()
+            ->assertSee('Workshop');
+    }
+
     private function createCategory(string $slug): Category
     {
         return Category::create([
