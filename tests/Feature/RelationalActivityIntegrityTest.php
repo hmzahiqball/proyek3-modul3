@@ -89,6 +89,19 @@ class RelationalActivityIntegrityTest extends TestCase
         $this->assertDatabaseHas('categories', ['id' => $category->id]);
     }
 
+    public function test_category_referenced_by_a_trashed_activity_cannot_be_deleted(): void
+    {
+        $category = $this->createCategory('workshop');
+        $activity = Activity::create($this->activityData(['category_id' => $category->id]));
+        $activity->delete();
+
+        $response = $this->delete(route('categories.destroy', $category));
+
+        $response->assertRedirect(route('categories.index'))
+            ->assertSessionHas('error', 'Kategori "Workshop" tidak dapat dihapus karena masih digunakan oleh 1 kegiatan.');
+        $this->assertDatabaseHas('categories', ['id' => $category->id]);
+    }
+
     public function test_empty_category_can_be_deleted(): void
     {
         $category = $this->createCategory('workshop');

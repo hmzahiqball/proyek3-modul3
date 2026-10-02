@@ -38,14 +38,14 @@ Aplikasi Manajemen Kegiatan (Modul 3 Framework in Programming).
 ## URL Route Utama
 Setelah server berjalan, Anda dapat mengakses aplikasi di browser melalui URL utama berikut:
 - **Daftar Kegiatan:** `http://localhost:8000/activities`
-- **Daftar Kegiatan dengan Filter:** `http://localhost:8000/activities?status=Planned`
+- **Daftar Kegiatan dengan Filter:** `http://localhost:8000/activities?status=published`
 - **Tambah Kegiatan:** `http://localhost:8000/activities/create`
 
 ## Task 3 - Quality Review
 
 - Soft delete menggunakan `Activity::withTrashed()` dan `Activity::onlyTrashed()`; halaman index memakai query normal agar data terhapus tidak tampil.
 - Query index menggunakan `with('category')` karena view menampilkan nama kategori. Test query membuktikan lazy loading menghasilkan 11 query, sedangkan eager loading menghasilkan 2 query untuk 10 activity.
-- SonarQube belum dapat dijalankan pada environment ini karena `sonar-scanner` tidak tersedia dan repository tidak memiliki konfigurasi SonarQube. Pemeriksaan otomatis yang tersedia tetap dijalankan melalui PHPUnit: seluruh test lulus.
+- SonarQube belum dapat dijalankan pada environment ini karena token dan konfigurasi scanner belum tersedia. Pemeriksaan otomatis yang tersedia dijalankan melalui PHPUnit.
 
 ## Add-On - Poster Storage dan Refactoring
 

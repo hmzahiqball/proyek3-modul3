@@ -37,7 +37,7 @@ class CategoryController extends Controller
 
     public function destroy(Category $category): RedirectResponse
     {
-        $activityCount = $category->activities()->count();
+        $activityCount = $category->activities()->withTrashed()->count();
 
         if ($activityCount > 0) {
             return redirect()->route('categories.index')

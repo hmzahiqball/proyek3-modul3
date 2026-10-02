@@ -59,6 +59,22 @@ class ActivityBusinessRuleQueryTest extends TestCase
             ->assertDontSee('name="status"', false);
     }
 
+    public function test_completed_activity_cannot_be_changed_back_to_draft(): void
+    {
+        $activity = $this->createActivity('completed');
+
+        $this->put(route('activities.update', $activity), $this->activityData([
+            'category_id' => $activity->category_id,
+            'code' => $activity->code,
+            'status' => 'draft',
+        ]))->assertRedirect(route('activities.show', $activity));
+
+        $this->assertDatabaseHas('activities', [
+            'id' => $activity->id,
+            'status' => 'completed',
+        ]);
+    }
+
     public function test_combined_query_filters_and_sort_are_applied(): void
     {
         $workshop = $this->createCategory('workshop');
